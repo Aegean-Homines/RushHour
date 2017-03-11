@@ -1,0 +1,63 @@
+For this assignment you have to implement a brute-force solution for 
+rush hour puzzle.
+
+Your solution has to:
+1) implement Solve function that finds a solution - not necessarily optimal
+2) implement SolveOptimal function that finds the best (shortest) solution
+
+Requirements:
+1) use recursive implementation
+2) should not use any heuristic/bound or any other kind of rush-hour-specific 
+   optimizations.
+
+================================================
+Driver can be used in 2 ways:
+1) 1 argument - will use predefined tests - see driver, output is 2 lines -
+   number of steps in the solution and 1 or 0 for correctness. See
+   out0, ..., out6 ( used for grading )
+   Files generated using ./gcc0.exe $i >> out$i
+   All tests use optimal solver.
+2) 2 arguments - first is the filename with the level, second is 1 or 0
+   (optimal or not). Output contains:
+   - initial board
+   - total number of moves to solve the level (including undo movies). 
+     Your counter may be different - depends on the order of up-left-right-down
+   - all moves of the solution with corresponding boards
+
+   See files solution.0.txt, ..., solution.6.txt
+   Files generated using ./gcc0.exe level.$i 1 >> solution.$i.txt
+   Note the optimal solver.
+
+================================================
+For 2 levels (0 and 2) I provided the full path that solver took to find 
+optimal solution. Remember you path to find solution may be different.
+Use these files with Prof. Mead's Game Board Server.
+solution.all.steps.0.txt
+solution.all.steps.2.txt
+
+================================================
+Good implementation times:
+
+level.0
+0.014s
+
+level.1
+0.397s
+
+level.2
+0.034s
+
+level.3
+0.179s
+
+level.4
+3.439s
+
+level.5
+1.894s
+
+level.6
+12.479s
+
+=============================================
+OK implementation times - multiply above by 3.

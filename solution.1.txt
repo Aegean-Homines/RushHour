@@ -1,0 +1,59 @@
+Initial position (solve by moving car 1 right ):
+0 2 0 0 0 0 
+0 2 0 0 4 0 
+1 1 0 0 4 0 
+5 5 5 0 4 0 
+0 0 6 0 7 7 
+0 0 6 0 0 0 
+Total moves (including undo) 411193
+Car 4 to be moved up  1 positions
+0 2 0 0 4 0 
+0 2 0 0 4 0 
+1 1 0 0 4 0 
+5 5 5 0 0 0 
+0 0 6 0 7 7 
+0 0 6 0 0 0 
+Car 5 to be moved right  3 positions
+0 2 0 0 4 0 
+0 2 0 0 4 0 
+1 1 0 0 4 0 
+0 0 0 5 5 5 
+0 0 6 0 7 7 
+0 0 6 0 0 0 
+Car 6 to be moved up  4 positions
+0 2 6 0 4 0 
+0 2 6 0 4 0 
+1 1 0 0 4 0 
+0 0 0 5 5 5 
+0 0 0 0 7 7 
+0 0 0 0 0 0 
+Car 5 to be moved left  2 positions
+0 2 6 0 4 0 
+0 2 6 0 4 0 
+1 1 0 0 4 0 
+0 5 5 5 0 0 
+0 0 0 0 7 7 
+0 0 0 0 0 0 
+Car 7 to be moved left  2 positions
+0 2 6 0 4 0 
+0 2 6 0 4 0 
+1 1 0 0 4 0 
+0 5 5 5 0 0 
+0 0 7 7 0 0 
+0 0 0 0 0 0 
+Car 4 to be moved down  3 positions
+0 2 6 0 0 0 
+0 2 6 0 0 0 
+1 1 0 0 0 0 
+0 5 5 5 4 0 
+0 0 7 7 4 0 
+0 0 0 0 4 0 
+Car 1 to be moved right  4 positions
+0 2 6 0 0 0 
+0 2 6 0 0 0 
+0 0 0 0 1 1 
+0 5 5 5 4 0 
+0 0 7 7 4 0 
+0 0 0 0 4 0 
+Number of steps = 7
+Solved = 1

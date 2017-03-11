@@ -1,0 +1,7 @@
+Initial position (solve by moving car 1 right ):
+4 4 4 0 0 0 
+0 0 2 0 0 0 
+1 1 2 0 0 0 
+0 0 2 0 5 5 
+3 3 3 0 6 0 
+0 0 0 0 6 0 
