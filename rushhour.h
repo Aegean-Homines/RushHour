@@ -54,7 +54,7 @@ typedef std::vector<std::tuple<unsigned, Direction, unsigned>> MoveList;
 typedef std::vector<std::vector<unsigned>> ParkingLotMap;
 
 // typedefs for data containers
-typedef std::unordered_map<unsigned, CarInfo> CarLocations;
+typedef std::vector<std::pair<unsigned, CarInfo>> CarLocations;
 typedef std::vector<CarLocations> StateHistory; // to prevent infinite loops
 typedef std::deque<std::tuple<unsigned, Direction, unsigned>> PossibleMoveVector; // Iterate through this
 typedef PossibleMoveVector ReverseMoveVector; // for rolling back the map

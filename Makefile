@@ -17,50 +17,60 @@ else
 CYGWIN=-Wl,--enable-auto-import
 endif
 
+TIME=(time ./$(PRG) $@) &>studentout$@-timed
+
 gcc0:
 	$(GCC) -o $(PRG) $(CYGWIN) $(DRIVER0) $(OBJECTS0) $(GCCFLAGS)
 #real	0m0.022s
 0:
 	@echo "should run in less than 100 ms"
 	./$(PRG) $@ >studentout$@
+	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
 #real	0m0.398s
 1:
 	@echo "should run in less than 1400 ms"
 	./$(PRG) $@ >studentout$@
+	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
 #real	0m0.045s
 2:
 	@echo "should run in less than 200 ms"
 	./$(PRG) $@ >studentout$@
+	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
 #real	0m0.172s
 3:
 	@echo "should run in less than 700 ms"
 	./$(PRG) $@ >studentout$@
+	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
 #real	0m3.272s
 4:
 	@echo "should run in less than 13000 ms"
 	./$(PRG) $@ >studentout$@
+	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
 #real	0m1.893s
 5:
 	@echo "should run in less than 7500 ms"
 	./$(PRG) $@ >studentout$@
+	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
 #real	0m12.596s
 6:
 	@echo "should run in less than 40000 ms"
 	./$(PRG) $@ >studentout$@
+	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
+
 mem0 mem1 mem2 mem3:
 	echo "running memory test $@"
 	@echo "should run in less than 5000 ms"

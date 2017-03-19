@@ -52,12 +52,12 @@ MoveList SolveRushHour(std::string const & filename)
 
 MoveList SolveRushHourOptimally ( std::string const& filename ) {
 
+	RushHourSolver rh(filename);
+	rh.InitCarLocations();
 	unsigned maxLevel = 1;
 	MoveList allMoves;
 	bool done = false;
 	do {
-		RushHourSolver rh(filename);
-		rh.InitCarLocations();
 		rh.MaxIteration(++maxLevel);
 		done = rh.SolveRushHourRec(allMoves);
 	} while (!done);
@@ -165,10 +165,6 @@ RushHourSolver::RushHourSolver(std::string const&  filename) : filename(filename
 		throw "Errors in input file: number of cells";
 	}
 
-#if LOG_ENABLED 
-	LOG("MAP INITIALIZED! THE MAP:"); 
-#endif
-	PrintMap();
 }
 
 // Direction is an enum (see header):
@@ -201,35 +197,42 @@ void RushHourSolver::makeMove(std::tuple< unsigned, Direction, unsigned > move)
 
 	// I changed this function. Since I'm storing car info, the moment I find the car ID
 	// I can just move numbers based on the size and the orientation information of the car
-	CarInfo & carInfo = currentCarLocations[car];
+	for(auto & pair:currentCarLocations) {
+		if(pair.first == car) {
+			CarInfo const & carInfo = pair.second;
 
-	unsigned row_start = (deltaRow != 0 && scan_direction == 1) ? carInfo.row + carInfo.size - 1 : carInfo.row;
-	unsigned column_start = (deltaColumn != 0 && scan_direction == 1) ? carInfo.column + carInfo.size - 1 : carInfo.column;
-	unsigned row_end = row_start + deltaRow * num_positions;
-	unsigned column_end = column_start + deltaColumn * num_positions;
+			unsigned row_start = (deltaRow != 0 && scan_direction == 1) ? carInfo.row + carInfo.size - 1 : carInfo.row;
+			unsigned column_start = (deltaColumn != 0 && scan_direction == 1) ? carInfo.column + carInfo.size - 1 : carInfo.column;
+			unsigned row_end = row_start + deltaRow * num_positions;
+			unsigned column_end = column_start + deltaColumn * num_positions;
 
-	for (unsigned counter = 0; counter < carInfo.size; ++counter) {
+			for (unsigned counter = 0; counter < carInfo.size; ++counter) {
 
-		parkingLot[row_start][column_start] = 0;
+				parkingLot[row_start][column_start] = 0;
 
-		// check if legal
-		if (row_end >= height && column_end >= width) {
-			throw("Car moved outside of parking lot");
+				// check if legal
+				if (row_end >= height && column_end >= width) {
+					throw("Car moved outside of parking lot");
+				}
+				if (parkingLot[row_end][column_end] > 0) {
+					throw("Car moved on top of another car");
+				}
+
+				parkingLot[row_end][column_end] = car;
+
+				row_start += -deltaRow;
+				column_start += -deltaColumn;
+				row_end += -deltaRow;
+				column_end += -deltaColumn;
+
+			}
+			
+			pair.second.row = carInfo.row + deltaRow * num_positions;
+			pair.second.column = carInfo.column + deltaColumn * num_positions;
+			//UpdateCarInfo(car, carInfo.row + deltaRow * num_positions, carInfo.column + deltaColumn * num_positions);
 		}
-		if (parkingLot[row_end][column_end] > 0) {
-			throw("Car moved on top of another car");
-		}
-
-		parkingLot[row_end][column_end] = car;
-
-		row_start += -deltaRow;
-		column_start += -deltaColumn;
-		row_end += -deltaRow;
-		column_end += -deltaColumn;
-
 	}
-
-	UpdateCarInfo(car, carInfo.row + deltaRow * num_positions, carInfo.column + deltaColumn * num_positions);
+	
 }
 
 bool RushHourSolver::IsSolved() const
@@ -306,12 +309,6 @@ bool RushHourSolver::SolveRushHourRec ( MoveList & solution )
 	if (currentLevel > maxIterationLevel)
 		return false;
 
-	/*LOG("BEGINNING OF THIS FUNCTION FRAME!");
-	LOG("MAP IN THE BEGINNING");*/
-	PrintMap();
-
-	//LOG("CAR LOCATIONS IN THE BEGINNING");
-	PrintCarLocations();
 
 	if(IsSolved())
 		return true;
@@ -320,33 +317,15 @@ bool RushHourSolver::SolveRushHourRec ( MoveList & solution )
 	ReverseMoveVector reverseMoves;
 
 	CalculatePossibleMoves(possibleMoves, reverseMoves);
-	/*LOG("CALCULATED ALL POSSIBLE MOVES. PRINTING THEM...");
-	LOG("ALL POSSIBLE MOVES:");*/
-	PrintPossibleMoves(possibleMoves);
-	//LOG("ALL REVERSE MOVES:");
-	PrintPossibleMoves(reverseMoves);
 
-	//LOG("BEGINNING OF THE WHILE LOOP...");
 	while(!possibleMoves.empty()) {
-		//LOG("ALL POSSIBLE MOVES IN THE WHILE LOOP...", "sup nigga", "mamatata", possibleMoves.size());
-		PrintPossibleMoves(possibleMoves);
-		//LOG("ALL REVERSE MOVES IN THE WHILE LOOP...");
-		PrintPossibleMoves(reverseMoves);
+
 		std::tuple<unsigned, Direction, unsigned> move = possibleMoves.back();
 		possibleMoves.pop_back();
 		makeMove(move);
 
-		//LOG("AFTER MAKE MOVE...");
-		//LOG("CAR LOCATIONS AFTER MAKE MOVE:");
-		PrintCarLocations();
-		//LOG("MAP AFTER MAKE MOVE:");
-		PrintMap();
-
-		//LOG("MOVE TO BE PROCESSED:");
-		PrintMove(move);
 		// never seen this state
 		if(std::find(stateHistory.begin(), stateHistory.end(), currentCarLocations) == stateHistory.end()) {
-			//LOG("MOVE IS CHOSEN!");
 			PrintMove(move);
 
 			stateHistory.push_back(currentCarLocations);
@@ -357,29 +336,14 @@ bool RushHourSolver::SolveRushHourRec ( MoveList & solution )
 			--currentLevel;
 			solution.pop_back();
 			stateHistory.pop_back();
-		}else {
-			//LOG("STATE ALREADY EXISTS FOR THE MOVE: ");
-			PrintMove(move);
 		}
 
-		//LOG("TIME TO REVERSE THE MOVE:");
-		PrintMove(move);
 		std::tuple<unsigned, Direction, unsigned> reverseMove = reverseMoves.back();
 		reverseMoves.pop_back();
 
-		//LOG("THE REVERSE OF THE MOVE:");
-		PrintMove(reverseMove);
 		makeMove(reverseMove);
 
-		/*LOG("AFTER REVERSING THE MOVE...");
-		LOG("CAR LOCATIONS AFTER REVERSE:");*/
-		PrintCarLocations();
-		//LOG("MAP AFTER REVERSE:");
-		PrintMap();
 	}
-	/*LOG("END OF THIS FUNCTION FRAME!");
-	LOG("MAP IN THE END");*/
-	PrintMap();
 	return false;
 }
 
@@ -397,24 +361,24 @@ void RushHourSolver::InitCarLocations ( ) {
 					//Horizontal
 					size = CalculateHorizontalCarSize(i, j, carID);
 					CarInfo info(i, j, size, horisontal);
-					currentCarLocations.insert(std::make_pair(carID, info));
+					currentCarLocations.push_back(std::make_pair(carID, info));
 				}else if(i == 0 && parkingLot[i + 1][j] == carID) {
 					// Vertical
 					size = CalculateVerticalCarSize(i, j, carID);
 					CarInfo info(i, j, size, vertical);
-					currentCarLocations.insert(std::make_pair(carID, info));
+					currentCarLocations.push_back(std::make_pair(carID, info));
 
 				}else if (j != width - 1 &&  parkingLot[i][j + 1] == carID && parkingLot[i][j - 1] != carID) {
 					// Horizontal in between
 					size = CalculateHorizontalCarSize(i, j, carID);
 					CarInfo info(i, j, size, horisontal);
-					currentCarLocations.insert(std::make_pair(carID, info));
+					currentCarLocations.push_back(std::make_pair(carID, info));
 
 				}else if(i != height - 1 && parkingLot[i + 1][j] == carID && parkingLot[i - 1][j] != carID) {
 					// Vertical in between
 					size = CalculateVerticalCarSize(i, j, carID);
 					CarInfo info(i, j, size, vertical);
-					currentCarLocations.insert(std::make_pair(carID, info));
+					currentCarLocations.push_back(std::make_pair(carID, info));
 				}
 
 			}
@@ -422,7 +386,6 @@ void RushHourSolver::InitCarLocations ( ) {
 	}
 	stateHistory.push_back(currentCarLocations);
 
-	LOG("CAR LOCATIONS INITIALIZED! CAR LOCATIONS ARE:");
 	PrintCarLocations();
 }
 
@@ -502,14 +465,14 @@ void RushHourSolver::CalculatePossibleMoves (PossibleMoveVector& possibleMoves, 
 	CarLocations::iterator end = currentCarLocations.end();
 
 	while(iter != end) {
-		CarInfo & carInfo = iter->second;
-		unsigned carColumn = carInfo.column;
-		unsigned carRow = carInfo.row;
+		CarInfo * carInfo = &iter->second;
+		unsigned carColumn = carInfo->column;
+		unsigned carRow = carInfo->row;
 		unsigned carID = iter->first;
 
-		if(carInfo.orientation == horisontal) {
+		if(carInfo->orientation == horisontal) {
 			unsigned counter = 1;
-			unsigned last = carColumn + carInfo.size;
+			unsigned last = carColumn + carInfo->size;
 			while (last < width && parkingLot[carRow][last++] == 0) {
 				possibleMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, right, counter));
 				reverseMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, left, counter));
@@ -524,7 +487,7 @@ void RushHourSolver::CalculatePossibleMoves (PossibleMoveVector& possibleMoves, 
 			}
 		}else {
 			unsigned counter = 1;
-			unsigned last = carRow + carInfo.size;
+			unsigned last = carRow + carInfo->size;
 			while (last < height && parkingLot[last++][carColumn] == 0) {
 				possibleMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, down, counter));
 				reverseMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, up, counter));
@@ -546,13 +509,18 @@ void RushHourSolver::CalculatePossibleMoves (PossibleMoveVector& possibleMoves, 
 
 void RushHourSolver::UpdateCarInfo ( unsigned carID, unsigned newRow, unsigned newColumn )
 {
-	try {
+	(void)carID;
+	(void)newRow;
+	(void)newColumn;
+
+
+	/*try {
 		CarInfo & carInfo = currentCarLocations.at(carID);
 		carInfo.row = newRow;
 		carInfo.column = newColumn;
 	}catch(...) {
 		throw("Car ID invalid!");
-	}
+	}*/
 
 }
 
