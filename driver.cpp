@@ -4,7 +4,7 @@
 #include <regex>    /* regular expression */
 #include <vector>
 #include <tuple>
-#include <set>
+#include <fstream>
 
 // for driver use only
 // you may reuse code - copy-paste and change class name to rushhour.h/cpp
@@ -41,6 +41,7 @@ void run_test( char const * filename, bool optimal )
 {
     try {
         ParkingLot pl( filename );
+		//pl.Print(std::string("PLPrint") + filename + ".txt");
         std::vector< std::tuple<unsigned, Direction, unsigned> > sol;
         if ( optimal ) {
             sol = pl.SolveOptimally( );

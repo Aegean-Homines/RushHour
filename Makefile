@@ -1,6 +1,7 @@
 PRG=gnu.exe
-GCC=g++-5
-#PRG=gcc0.exe
+PRG=gcc0.exe
+
+GCC=g++
 GCCFLAGS=-O3 -Wall -Werror -Wextra -std=c++11 -pedantic -Wconversion -Wold-style-cast
 
 OBJECTS0=rushhour.cpp

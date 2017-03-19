@@ -145,6 +145,7 @@
     <ClInclude Include="rushhour.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="15puzzle.cpp" />
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="rushhour.cpp" />
   </ItemGroup>
