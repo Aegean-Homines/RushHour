@@ -4,6 +4,10 @@
 #include <vector>
 #include <tuple>
 #include <deque>
+#include <unordered_map>
+#include <limits>
+#include <fstream>
+#include <regex>
 
 
 // Keep this
@@ -33,15 +37,14 @@ struct CarInfo {
 	unsigned row;
 	unsigned column;
 	unsigned size;
-	unsigned carID;
 	Orientation orientation;
 
 	bool operator==(CarInfo const & rhs) const;
 
-	CarInfo(unsigned x = 0, unsigned y = 0, unsigned size = 2, unsigned carID = 1, Orientation orientation = horisontal)
-	: row(x), column(y), size(size), carID(carID), orientation(orientation){}
+	CarInfo(unsigned x = 0, unsigned y = 0, unsigned size = 2,  Orientation orientation = horisontal)
+	: row(x), column(y), size(size), orientation(orientation){}
 
-	void PrintCarInfo() const;
+	void PrintCarInfo( unsigned carID ) const;
 };
 
 // returned solution typedef
@@ -51,7 +54,7 @@ typedef std::vector<std::tuple<unsigned, Direction, unsigned>> MoveList;
 typedef std::vector<std::vector<unsigned>> ParkingLotMap;
 
 // typedefs for data containers
-typedef std::vector<CarInfo> CarLocations;
+typedef std::unordered_map<unsigned, CarInfo> CarLocations;
 typedef std::vector<CarLocations> StateHistory; // to prevent infinite loops
 typedef std::deque<std::tuple<unsigned, Direction, unsigned>> PossibleMoveVector; // Iterate through this
 typedef PossibleMoveVector ReverseMoveVector; // for rolling back the map
@@ -64,6 +67,10 @@ private:
 	Direction exitDirection = undefined;    // exit direction
 	unsigned car = 0;            // car to be navigated
 	std::string filename = std::string();// filename for data
+
+	unsigned currentLevel = 1;
+	unsigned maxIterationLevel = 1;
+	unsigned maxLevel = std::numeric_limits<unsigned>::max();
 
 	// Data for storing vars
 	StateHistory stateHistory = StateHistory();
@@ -98,12 +105,13 @@ public:
 
 	// My rather uncool stuff
 	bool SolveRushHourRec ( MoveList & solution );
-	void InitCarInfoArray();
 
-	MoveList SolveRushHourOptimallyRec();
+	void InitCarLocations();
 
+	void MaxIteration(unsigned iter);
 
 };
 
 
 #endif
+
