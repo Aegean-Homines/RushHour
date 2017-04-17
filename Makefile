@@ -1,5 +1,5 @@
 PRG=gnu.exe
-PRG=gcc0.exe
+PRG=gcc1.exe
 
 GCC=g++
 GCCFLAGS=-O3 -Wall -Werror -Wextra -std=c++11 -pedantic -Wconversion -Wold-style-cast
@@ -70,6 +70,10 @@ gcc0:
 	$(TIME)
 	@echo "lines after the next are mismatches with master output -- see out$@"
 	diff out$@ studentout$@ $(DIFF_OPTIONS)
+7:
+	@echo "the hardest test"
+	./$(PRG) $@ >studentout$@
+	$(TIME)
 
 mem0 mem1 mem2 mem3:
 	echo "running memory test $@"

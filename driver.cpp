@@ -66,6 +66,8 @@ void test3() { run_test("level.3", 1); }
 void test4() { run_test("level.4", 1); }
 void test5() { run_test("level.5", 1); }
 void test6() { run_test("level.6", 1); }
+void test7() { run_test("level.hard", 1); }
+
 
 int main(int argc, char ** argv)
 {
@@ -85,7 +87,7 @@ int main(int argc, char ** argv)
 																		//////////////////////////////////////////////////////////////////////
 	if (argc == 2) {                                                  //
 		void(*pTests[])() = { test0,test1,test2,test3,test4,test5,     //
-			test6                                                       //
+			test6, test7                                               //
 		};                                                              //
 		pTests[atoi(argv[1])]();                                      //
 		return 0;                                                       //

@@ -1,20 +1,27 @@
+/*!
+* \file RushHour.cpp
+* \author Egemen Koku
+* \date 20 Mar 2017
+* \brief Impl of @b rushhour.cpp
+*
+* \copyright Digipen Institute of Technology
+* \mainpage Rush Hour
+*
+*/
+
 #include <iostream>
 #include "rushhour.h"
 #include <string>
 
 #define LOG_ENABLED 0
+#define CLOSED_LIST_OPT 1
 
 #if LOG_ENABLED
 void LOG() {
 	std::cout << std::endl;
 }
 
-// Helper function for printing lines and debugging (because boy is it necessary)
-template<typename Word, typename ...Rest>
-void LOG(Word && word, Rest && ...rest) {
-	std::cout << std::forward<Word>(word) << " ";
-	LOG(std::forward<Rest>(rest)...);
-}
+
 #else
 void LOG() {
 }
@@ -22,10 +29,11 @@ void LOG() {
 // Helper function for printing lines and debugging (because boy is it necessary)
 template<typename Word, typename ...Rest>
 void LOG(Word && word, Rest && ...rest) {
-	static_cast<void>(word);
+	static_cast<void>(word); // for getting rid of the unused param error
 	LOG(std::forward<Rest>(rest)...);
 }
 #endif
+
 
 // Keep this
 std::ostream& operator<<( std::ostream& os, Direction const& d ) {
@@ -57,7 +65,12 @@ MoveList SolveRushHourOptimally ( std::string const& filename ) {
 	unsigned maxLevel = 1;
 	MoveList allMoves;
 	bool done = false;
+	// loop through until it's solved
+	// Warning: I'm not checking for a max level so it'll crash if the max depth is high
 	do {
+#if CLOSED_LIST_OPT
+		rh.ClearClosedList();
+#endif
 		rh.MaxIteration(++maxLevel);
 		done = rh.SolveRushHourRec(allMoves);
 	} while (!done);
@@ -72,6 +85,7 @@ bool CarInfo::operator== ( CarInfo const& rhs ) const {
 		&& orientation == rhs.orientation);
 }
 
+// For debugging car info
 void CarInfo::PrintCarInfo ( unsigned carID ) const {
 	std::string orientationInString = orientation == horisontal ? "Horizontal" : "Vertical";
 	std::cout << std::endl;
@@ -201,6 +215,7 @@ void RushHourSolver::makeMove(std::tuple< unsigned, Direction, unsigned > move)
 		if(pair.first == car) {
 			CarInfo const & carInfo = pair.second;
 
+			// Get the starting and ending positions
 			unsigned row_start = (deltaRow != 0 && scan_direction == 1) ? carInfo.row + carInfo.size - 1 : carInfo.row;
 			unsigned column_start = (deltaColumn != 0 && scan_direction == 1) ? carInfo.column + carInfo.size - 1 : carInfo.column;
 			unsigned row_end = row_start + deltaRow * num_positions;
@@ -208,6 +223,7 @@ void RushHourSolver::makeMove(std::tuple< unsigned, Direction, unsigned > move)
 
 			for (unsigned counter = 0; counter < carInfo.size; ++counter) {
 
+				// swapping part 1
 				parkingLot[row_start][column_start] = 0;
 
 				// check if legal
@@ -218,8 +234,10 @@ void RushHourSolver::makeMove(std::tuple< unsigned, Direction, unsigned > move)
 					throw("Car moved on top of another car");
 				}
 
+				// swapping part 2
 				parkingLot[row_end][column_end] = car;
 
+				// advance "pointers"
 				row_start += -deltaRow;
 				column_start += -deltaColumn;
 				row_end += -deltaRow;
@@ -227,9 +245,9 @@ void RushHourSolver::makeMove(std::tuple< unsigned, Direction, unsigned > move)
 
 			}
 			
+			// Also update car info
 			pair.second.row = carInfo.row + deltaRow * num_positions;
 			pair.second.column = carInfo.column + deltaColumn * num_positions;
-			//UpdateCarInfo(car, carInfo.row + deltaRow * num_positions, carInfo.column + deltaColumn * num_positions);
 		}
 	}
 	
@@ -306,12 +324,24 @@ int RushHourSolver::CheckBrief(std::vector< std::tuple<unsigned, Direction, unsi
 
 bool RushHourSolver::SolveRushHourRec ( MoveList & solution )
 {
+	// for IDA - return
 	if (currentLevel > maxIterationLevel)
 		return false;
 
 
 	if(IsSolved())
 		return true;
+
+#if CLOSED_LIST_OPT
+	ClosedList::iterator iter = std::find(closedList.begin(), closedList.end(), currentCarLocations);
+	if (iter != closedList.end()) {
+		if(solution.size() < iter->solSize) {
+			iter->solSize = solution.size();
+			closedList.erase(iter);
+		}
+		else { return false; }
+	}
+#endif
 
 	PossibleMoveVector possibleMoves;
 	ReverseMoveVector reverseMoves;
@@ -326,13 +356,13 @@ bool RushHourSolver::SolveRushHourRec ( MoveList & solution )
 
 		// never seen this state
 		if(std::find(stateHistory.begin(), stateHistory.end(), currentCarLocations) == stateHistory.end()) {
-			PrintMove(move);
 
 			stateHistory.push_back(currentCarLocations);
 			solution.push_back(move);
 			++currentLevel;
 			if (SolveRushHourRec(solution))
 				return true;
+
 			--currentLevel;
 			solution.pop_back();
 			stateHistory.pop_back();
@@ -344,6 +374,9 @@ bool RushHourSolver::SolveRushHourRec ( MoveList & solution )
 		makeMove(reverseMove);
 
 	}
+#if CLOSED_LIST_OPT
+	closedList.push_back(ClosedListSearchNode(currentCarLocations, solution.size()));
+#endif
 	return false;
 }
 
@@ -385,8 +418,11 @@ void RushHourSolver::InitCarLocations ( ) {
 		}
 	}
 	stateHistory.push_back(currentCarLocations);
+}
 
-	PrintCarLocations();
+void RushHourSolver::ClearClosedList()
+{
+	closedList.clear();
 }
 
 void RushHourSolver::MaxIteration ( unsigned iter ) {
@@ -470,9 +506,12 @@ void RushHourSolver::CalculatePossibleMoves (PossibleMoveVector& possibleMoves, 
 		unsigned carRow = carInfo->row;
 		unsigned carID = iter->first;
 
+		// Horizontal cars
 		if(carInfo->orientation == horisontal) {
 			unsigned counter = 1;
 			unsigned last = carColumn + carInfo->size;
+			// If it's a valid move
+			// tail of a car
 			while (last < width && parkingLot[carRow][last++] == 0) {
 				possibleMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, right, counter));
 				reverseMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, left, counter));
@@ -480,12 +519,13 @@ void RushHourSolver::CalculatePossibleMoves (PossibleMoveVector& possibleMoves, 
 			}
 			int begin = carColumn - 1;
 			counter = 1;
+			// head of a car
 			while (begin > -1 && parkingLot[carRow][begin--] == 0) {
 				possibleMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, left, counter));
 				reverseMoves.push_front(std::tuple<unsigned, Direction, unsigned>(carID, right, counter));
 				++counter;
 			}
-		}else {
+		}else { //same for vertical
 			unsigned counter = 1;
 			unsigned last = carRow + carInfo->size;
 			while (last < height && parkingLot[last++][carColumn] == 0) {
@@ -504,23 +544,6 @@ void RushHourSolver::CalculatePossibleMoves (PossibleMoveVector& possibleMoves, 
 
 		++iter;
 	}
-
-}
-
-void RushHourSolver::UpdateCarInfo ( unsigned carID, unsigned newRow, unsigned newColumn )
-{
-	(void)carID;
-	(void)newRow;
-	(void)newColumn;
-
-
-	/*try {
-		CarInfo & carInfo = currentCarLocations.at(carID);
-		carInfo.row = newRow;
-		carInfo.column = newColumn;
-	}catch(...) {
-		throw("Car ID invalid!");
-	}*/
 
 }
 
@@ -550,3 +573,9 @@ void RushHourSolver::PrintCarLocations ( ) const {
 
 }
 
+bool ClosedListSearchNode::operator==(CarLocations const & rhs) const
+{
+	return carLocation == rhs;
+}
+
+ClosedListSearchNode::ClosedListSearchNode ( CarLocations location, size_t size ) :carLocation(location), solSize(size) {}
